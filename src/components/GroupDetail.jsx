@@ -97,7 +97,7 @@ const GroupDetail = () => {
       </header>
 
       <main className="flex-grow max-w-4xl mx-auto p-8">
-        {/* Candidate Form */}
+        
         <section className="mb-10 max-w-lg mx-auto">
           <h2 className="text-purple-700 text-2xl font-bold mb-4">Add Candidate</h2>
           <input
