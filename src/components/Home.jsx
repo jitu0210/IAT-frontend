@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Navbar from './Navbar';
+import Footer from "./Footer.jsx"
 
 const STORAGE_KEY = "intern-groups-data";
 
@@ -66,6 +68,7 @@ const Home = () => {
   };
 
  return (
+  
     <div className="min-h-screen bg-white p-6 flex flex-col items-center">
       <div className="w-full max-w-3xl rounded-lg border-2 border-purple-700 p-8 shadow-lg">
         <h2 className="text-purple-800 text-4xl font-extrabold mb-8 border-b-4 border-purple-700 pb-3">

@@ -4,6 +4,8 @@ import Home from "./components/Home.jsx";
 import About from "./pages/About.jsx"
 import Contact from "./pages/Contact.jsx"
 import GroupDetail from "./components/GroupDetail.jsx";
+import ForgetPassword from "./pages/Forgetpassword.jsx"
+import Help from "./pages/Help.jsx"
 
 
 const App = () => {
@@ -14,6 +16,8 @@ const App = () => {
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
+        <Route path="/help" element={<Help />} />
         <Route path="/groups/:groupId" element={<GroupDetail />} />
       </Routes>
   
