@@ -14,7 +14,7 @@ const GroupDetail = () => {
     qualities: "",
   });
 
-  // Load group data from localStorage on mount
+  // Load group data from localStorage
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -23,24 +23,23 @@ const GroupDetail = () => {
         const foundGroup = data.groups.find((g) => g.id === groupId);
         if (!foundGroup) {
           alert("Group not found.");
-          navigate("/");
+          navigate("/home");
         } else {
           setGroup(foundGroup);
         }
       } catch {
         alert("Failed to load data.");
-        navigate("/");
+        navigate("/home");
       }
     } else {
       alert("No data found.");
-      navigate("/");
+      navigate("/home");
     }
   }, [groupId, navigate]);
 
-  // Update localStorage whenever group changes (candidates added)
+  // Save updates back to localStorage
   useEffect(() => {
     if (!group) return;
-
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return;
 
@@ -49,7 +48,7 @@ const GroupDetail = () => {
       const updatedGroups = data.groups.map((g) => (g.id === group.id ? group : g));
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ groups: updatedGroups }));
     } catch {
-      // ignore errors
+      // ignore
     }
   }, [group]);
 
@@ -57,12 +56,19 @@ const GroupDetail = () => {
     setCandidateForm({ ...candidateForm, [e.target.name]: e.target.value });
   };
 
+  // Add candidate with Date of Joining
   const addCandidate = () => {
     const { name, branch, qualities } = candidateForm;
     if (!name.trim() || !branch.trim() || !qualities.trim()) {
       alert("Please fill in all candidate fields.");
       return;
     }
+
+    const today = new Date().toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
 
     setGroup({
       ...group,
@@ -73,6 +79,7 @@ const GroupDetail = () => {
           name: name.trim(),
           branch: branch.trim(),
           qualities: qualities.trim(),
+          dateOfJoining: today,
         },
       ],
     });
@@ -80,33 +87,43 @@ const GroupDetail = () => {
     setCandidateForm({ name: "", branch: "", qualities: "" });
   };
 
-  if (!group) {
-    return null; // or loading spinner
-  }
+  // Delete candidate
+  const deleteCandidate = (id) => {
+    if (window.confirm("Are you sure you want to delete this candidate?")) {
+      setGroup({
+        ...group,
+        candidates: group.candidates.filter((c) => c.id !== id),
+      });
+    }
+  };
+
+  if (!group) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-gray-900">
-      <header className="p-5 bg-purple-700 text-white text-3xl font-bold flex justify-between items-center">
-        <div>{group.name} - Candidates</div>
+    <div className="min-h-screen flex flex-col bg-black text-white">
+      {/* Header */}
+      <header className="p-5 bg-neutral-900 border-b border-gray-700 flex justify-between items-center">
+        <h1 className="text-xl font-bold">{group.name} - Candidates</h1>
         <Link
           to="/home"
-          className="bg-white text-purple-700 px-4 py-2 rounded hover:bg-purple-200 transition"
+          className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition"
         >
-          &larr; Back to Groups
+          &larr; Back
         </Link>
       </header>
 
-      <main className="flex-grow max-w-4xl mx-auto p-8">
-        
-        <section className="mb-10 max-w-lg mx-auto">
-          <h2 className="text-purple-700 text-2xl font-bold mb-4">Add Candidate</h2>
+      {/* Main */}
+      <main className="flex-grow max-w-4xl mx-auto w-full px-6 py-10">
+        {/* Add Candidate */}
+        <section className="mb-10 bg-neutral-900 p-6 rounded-lg border border-gray-700">
+          <h2 className="text-lg font-semibold mb-4">Add Candidate</h2>
           <input
             type="text"
             name="name"
             placeholder="Candidate Name"
             value={candidateForm.name}
             onChange={handleInputChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-white bg-black text-white placeholder-gray-500"
           />
           <input
             type="text"
@@ -114,7 +131,7 @@ const GroupDetail = () => {
             placeholder="Branch"
             value={candidateForm.branch}
             onChange={handleInputChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-white bg-black text-white placeholder-gray-500"
           />
           <textarea
             name="qualities"
@@ -122,11 +139,11 @@ const GroupDetail = () => {
             value={candidateForm.qualities}
             onChange={handleInputChange}
             rows={4}
-            className="w-full border border-gray-300 rounded px-4 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-white bg-black text-white placeholder-gray-500 resize-none"
           />
           <button
             onClick={addCandidate}
-            className="bg-purple-700 text-white px-6 py-2 rounded hover:bg-purple-800 transition"
+            className="w-full bg-white hover:bg-gray-200 text-black font-semibold py-2 px-4 rounded-lg transition"
           >
             Add Candidate
           </button>
@@ -134,19 +151,32 @@ const GroupDetail = () => {
 
         {/* Candidate List */}
         <section>
-          <h3 className="text-purple-700 text-xl font-semibold mb-6">Candidate List</h3>
+          <h3 className="text-lg font-semibold mb-4">Candidate List</h3>
           {group.candidates.length === 0 ? (
-            <p className="text-gray-500">No candidates added yet.</p>
+            <p className="text-gray-400">No candidates added yet.</p>
           ) : (
-            <ul className="space-y-5 max-w-lg">
-              {group.candidates.map(({ id, name, branch, qualities }) => (
+            <ul className="space-y-4">
+              {group.candidates.map(({ id, name, branch, qualities, dateOfJoining }) => (
                 <li
                   key={id}
-                  className="border border-purple-700 rounded p-4 shadow hover:shadow-lg transition"
+                  className="bg-neutral-900 p-4 rounded-lg border border-gray-700 flex flex-col md:flex-row md:justify-between md:items-center"
                 >
-                  <h4 className="text-purple-700 font-semibold text-lg mb-1">{name}</h4>
-                  <p className="font-medium text-gray-800 mb-1">Branch: {branch}</p>
-                  <p className="text-gray-700 whitespace-pre-line">{qualities}</p>
+                  <div>
+                    <h4 className="font-semibold text-white text-lg">{name}</h4>
+                    <p className="text-gray-300">Branch: {branch}</p>
+                    <p className="text-gray-400 mt-1 whitespace-pre-line">
+                      {qualities}
+                    </p>
+                    <p className="text-gray-500 mt-2 text-sm">
+                      Date of Joining: {dateOfJoining}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => deleteCandidate(id)}
+                    className="mt-3 md:mt-0 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg"
+                  >
+                    Delete
+                  </button>
                 </li>
               ))}
             </ul>
@@ -154,7 +184,8 @@ const GroupDetail = () => {
         </section>
       </main>
 
-      <footer className="bg-purple-700 text-white text-center p-4 select-none">
+      {/* Footer */}
+      <footer className="bg-neutral-900 border-t border-gray-700 text-center p-4 text-gray-400 text-sm">
         © {new Date().getFullYear()} Aartech Solonics Limited
       </footer>
     </div>

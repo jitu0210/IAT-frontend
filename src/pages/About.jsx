@@ -1,87 +1,96 @@
 import { Link } from "react-router-dom";
 
+// Departments data (images kept empty string for now)
 const departments = [
-  {
-    name: "Mechanical",
-    img: "https://images.unsplash.com/photo-1581090700227-04c92b924fbf?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    name: "Computer Science (CSE)",
-    img: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    name: "Electrical (EX)",
-    img: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    name: "Electronics & Communication (EC)",
-    img: "https://images.unsplash.com/photo-1517433456452-f9633a875f6f?auto=format&fit=crop&w=400&q=80",
-  },
+  { name: "Mechanical", img: "" },
+  { name: "Computer Science (CSE)", img: "" },
+  { name: "Electrical (EX)", img: "" },
+  { name: "Electronics & Communication (EC)", img: "" },
 ];
 
 const About = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-white text-gray-900">
+    <div className="min-h-screen flex flex-col bg-black text-gray-200">
       {/* Header */}
-      <header className="bg-purple-700 text-white p-6 text-center font-extrabold text-4xl tracking-wide">
+      <header className="bg-black text-white p-5 text-center font-bold text-2xl sm:text-3xl tracking-wide border-b border-gray-700">
         Aartech Solonics Limited - Intern Cohort
       </header>
 
-      {/* Main container */}
-      <main className="flex-grow max-w-4xl mx-auto px-6 py-10 space-y-12 text-center">
+      {/* Main content */}
+      <main className="flex-grow max-w-5xl mx-auto px-5 py-10 space-y-12">
+        
         {/* About Section */}
-        <section>
-          <h2 className="text-3xl font-bold text-purple-700 mb-4">About Aartech Solonics Limited</h2>
-          <p className="max-w-3xl mx-auto text-gray-800 leading-relaxed text-lg">
-            Aartech Solonics Limited is a pioneering company specializing in electrical and electronics engineering solutions. We are
-            committed to innovation and excellence, providing world-class products and services that empower industries and communities alike.
-            Our new cohort of interns is a critical part of our vision to nurture talent and drive future growth.
+        <section className="text-center">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">
+            About Aartech Solonics Limited
+          </h2>
+          <p className="max-w-3xl mx-auto leading-relaxed text-gray-300 text-base sm:text-lg">
+            Aartech Solonics Limited is a pioneering company specializing in 
+            electrical and electronics engineering solutions. Our vision is 
+            to innovate, excel, and empower industries with top-notch products 
+            and services. Our intern cohort plays a vital role in nurturing 
+            future talent.
           </p>
         </section>
 
         {/* Internship Program */}
-        <section>
-          <h3 className="text-2xl font-semibold text-purple-700 mb-3">Our Internship Program</h3>
-          <p className="max-w-3xl mx-auto text-gray-800 leading-relaxed text-lg">
-            The intern cohort engages with real-world projects, gaining hands-on experience in cutting-edge technologies and industry best practices.
-            We encourage learning, collaboration, and creativity in a supportive environment.
+        <section className="text-center">
+          <h3 className="text-xl sm:text-2xl font-semibold text-white mb-3">
+            Our Internship Program
+          </h3>
+          <p className="max-w-3xl mx-auto leading-relaxed text-gray-300 text-base sm:text-lg">
+            Interns engage with real-world projects, gain hands-on experience 
+            with modern technologies, and learn industry best practices in a 
+            collaborative and supportive environment.
           </p>
         </section>
 
-        {/* Departments Section */}
+        {/* Departments */}
         <section>
-          <h3 className="text-2xl font-semibold text-purple-700 mb-8">Departments</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <h3 className="text-center text-xl sm:text-2xl font-semibold text-white mb-8">
+            Departments
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {departments.map(({ name, img }) => (
               <div
                 key={name}
-                className="rounded-lg shadow-lg overflow-hidden border border-purple-200"
+                className="rounded-lg bg-black border border-gray-700 shadow-sm overflow-hidden hover:shadow-md hover:border-gray-500 transition"
               >
-                <img
-                  src={img}
-                  alt={name}
-                  className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="bg-purple-700 text-white py-3 text-lg font-semibold">{name}</div>
+                {img ? (
+                  <img
+                    src={img}
+                    alt={name}
+                    className="w-full h-40 object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-40 flex items-center justify-center bg-gray-900 text-gray-500 text-sm">
+                    Image not available
+                  </div>
+                )}
+                <div className="bg-black text-white py-3 text-center text-base font-medium border-t border-gray-700">
+                  {name}
+                </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Return to Home button */}
-        <Link
-          to="/home"
-          className="inline-block bg-purple-700 text-white px-8 py-3 rounded-full hover:bg-purple-800 transition text-lg font-semibold mt-8"
-        >
-          Return to Home
-        </Link>
+        {/* Return Home */}
+        <div className="text-center">
+          <Link
+            to="/home"
+            className="inline-block bg-white text-black px-6 py-2 rounded-full border border-gray-400 hover:bg-gray-200 transition text-base font-medium mt-8"
+          >
+            Return to Home
+          </Link>
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-purple-100 border-t border-purple-300 p-5 text-center text-purple-700 text-sm font-medium">
-        Frontend developed by <span className="font-semibold">Aman Tiwary</span> | Backend developed by{" "}
-        <span className="font-semibold">Jitu Kumar</span>
+      <footer className="bg-black border-t border-gray-700 p-4 text-center text-gray-500 text-sm">
+        Frontend: <span className="font-medium text-white">Aman Tiwary</span> | Backend:{" "}
+        <span className="font-medium text-white">Jitu Kumar</span>
       </footer>
     </div>
   );
