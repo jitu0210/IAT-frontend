@@ -7,6 +7,7 @@ import GroupDetail from "./components/GroupDetail.jsx";
 import ForgetPassword from "./pages/Forgetpassword.jsx"
 import Help from "./pages/Help.jsx"
 import Developer from "./pages/Developer.jsx";
+import CandidatePerformance from "./components/CandidatePerformance.jsx";
 
 
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
         <Route path="/help" element={<Help />} />
         <Route path="/developer" element={<Developer />} />
         <Route path="/groups/:groupId" element={<GroupDetail />} />
+        <Route path="/candidate-performance" element={<CandidatePerformance />} />
       </Routes>
   
   );

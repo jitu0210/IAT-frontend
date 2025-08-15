@@ -19,20 +19,18 @@ const GroupDetail = () => {
   const [group, setGroup] = useState(null);
   const [candidateForm, setCandidateForm] = useState({
     name: "",
-    branch: "", // default empty
+    branch: "",
     qualities: "",
   });
 
-  // Load group data from localStorage
+  // Load group from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) throw new Error("No data found.");
-
       const data = JSON.parse(saved);
       const foundGroup = data.groups.find((g) => g.id === groupId);
       if (!foundGroup) throw new Error("Group not found.");
-
       setGroup(foundGroup);
     } catch (err) {
       alert(err.message);
@@ -40,45 +38,34 @@ const GroupDetail = () => {
     }
   }, [groupId, navigate]);
 
-  // Save updates back to localStorage
+  // Save group to localStorage
   useEffect(() => {
     if (!group) return;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) return;
-
       const data = JSON.parse(saved);
       const updatedGroups = data.groups.map((g) =>
         g.id === group.id ? group : g
       );
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ groups: updatedGroups }));
-    } catch {
-      // ignore save errors
-    }
+    } catch {}
   }, [group]);
 
   const handleInputChange = (e) => {
     setCandidateForm({ ...candidateForm, [e.target.name]: e.target.value });
   };
 
-  // Add candidate with Date and Time of Joining
   const addCandidate = async () => {
     const { name, branch, qualities } = candidateForm;
     if (!name.trim() || !branch.trim() || !qualities.trim()) {
-      alert("Please fill in all candidate fields.");
+      alert("Please fill all fields.");
       return;
     }
 
     const now = new Date();
-    const date = now.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-    const time = now.toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const date = now.toLocaleDateString("en-IN");
+    const time = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
     const newCandidate = {
       id: Date.now().toString(),
@@ -88,24 +75,20 @@ const GroupDetail = () => {
       dateOfJoining: `${date} ${time}`,
     };
 
-    // Update local state
     setGroup((prev) => ({
       ...prev,
       candidates: [...prev.candidates, newCandidate],
     }));
 
-    // Send to backend (endpoint empty for now)
     try {
-      await axios.post("", newCandidate); // replace "" with your endpoint
+      await axios.post("", newCandidate); // Backend endpoint placeholder
     } catch (err) {
-      console.log("Backend save skipped or failed:", err.message);
+      console.log("Backend save skipped:", err.message);
     }
 
-    // Reset form
     setCandidateForm({ name: "", branch: "", qualities: "" });
   };
 
-  // Delete candidate
   const deleteCandidate = (id) => {
     if (window.confirm("Are you sure you want to delete this candidate?")) {
       setGroup({
@@ -119,7 +102,6 @@ const GroupDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
-      {/* Header */}
       <header className="p-4 bg-neutral-900 border-b border-gray-700 flex justify-between items-center">
         <h1 className="text-xl font-bold">{group.name} - Candidates</h1>
         <Link
@@ -130,9 +112,7 @@ const GroupDetail = () => {
         </Link>
       </header>
 
-      {/* Main */}
       <main className="flex-grow max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Add Candidate */}
         <section className="mb-10 bg-neutral-900 p-6 rounded-lg border border-gray-700">
           <h2 className="text-lg font-semibold mb-4">Add Candidate</h2>
           <input
@@ -141,46 +121,39 @@ const GroupDetail = () => {
             placeholder="Candidate Name"
             value={candidateForm.name}
             onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-white bg-black text-white placeholder-gray-500"
+            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-3 bg-black text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
           />
-
-          {/* Department Dropdown */}
-          <div className="relative mb-3">
-            <select
-              name="branch"
-              value={candidateForm.branch}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-black text-white focus:outline-none focus:ring-2 focus:ring-white"
-            >
-              <option value="" disabled>
-                -- Select Department --
+          <select
+            name="branch"
+            value={candidateForm.branch}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-3 bg-black text-white focus:outline-none focus:ring-2 focus:ring-white"
+          >
+            <option value="" disabled>
+              -- Select Department --
+            </option>
+            {departmentsList.map((dep) => (
+              <option key={dep} value={dep}>
+                {dep}
               </option>
-              {departmentsList.map((dep) => (
-                <option key={dep} value={dep}>
-                  {dep}
-                </option>
-              ))}
-            </select>
-          </div>
-
+            ))}
+          </select>
           <textarea
             name="qualities"
             placeholder="Qualities / Description"
             value={candidateForm.qualities}
             onChange={handleInputChange}
             rows={4}
-            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-white bg-black text-white placeholder-gray-500 resize-none"
+            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-4 bg-black text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white resize-none"
           />
-
           <button
             onClick={addCandidate}
-            className="w-full bg-white hover:bg-gray-200 text-black font-semibold py-2 px-4 rounded-lg transition"
+            className="w-full bg-white text-black py-2 px-4 rounded-lg hover:bg-gray-200 transition"
           >
             Add Candidate
           </button>
         </section>
 
-        {/* Candidate List */}
         <section>
           <h3 className="text-lg font-semibold mb-4">Candidate List</h3>
           {group.candidates.length === 0 ? (
@@ -203,12 +176,21 @@ const GroupDetail = () => {
                         Date & Time of Joining: {dateOfJoining}
                       </p>
                     </div>
-                    <button
-                      onClick={() => deleteCandidate(id)}
-                      className="mt-3 md:mt-0 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg"
-                    >
-                      Delete
-                    </button>
+
+                    <div className="mt-3 md:mt-0 flex gap-2">
+                      <button
+                        onClick={() => navigate(`/candidate-performance/${id}`)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg"
+                      >
+                        Performance
+                      </button>
+                      <button
+                        onClick={() => deleteCandidate(id)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </li>
                 )
               )}
@@ -217,7 +199,6 @@ const GroupDetail = () => {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-neutral-900 border-t border-gray-700 text-center p-4 text-gray-400 text-sm">
         © {new Date().getFullYear()} Aartech Solonics Limited
       </footer>

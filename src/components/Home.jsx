@@ -113,6 +113,8 @@ const Home = () => {
     return (total / group.candidates.length).toFixed(2);
   };
 
+  const candidateCount = (group) => group.candidates?.length || 0;
+
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       <Navbar />
@@ -189,7 +191,10 @@ const Home = () => {
                       </Link>
                     )}
                     <span className="text-gray-300">
-                      Performance: {calculatePerformance(groups.find(g => g.id === id))} / 10
+                      Candidates: {candidateCount(groups.find((g) => g.id === id))}
+                    </span>
+                    <span className="text-gray-300">
+                      Performance: {calculatePerformance(groups.find((g) => g.id === id))} / 10
                     </span>
                   </div>
 

@@ -26,7 +26,7 @@ const Contact = () => {
               </p>
               <a
                 href="mailto:hr@company.com"
-                className="text-gray-400 hover:text-white text-sm"
+                className="text-blue-400 hover:text-white text-sm"
               >
                 hr@company.com
               </a>
@@ -41,7 +41,7 @@ const Contact = () => {
               </p>
               <a
                 href="mailto:coordinator@company.com"
-                className="text-gray-400 hover:text-white text-sm"
+                className="text-blue-400 hover:text-white text-sm"
               >
                 coordinator@company.com
               </a>
