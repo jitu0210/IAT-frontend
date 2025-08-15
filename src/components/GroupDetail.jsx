@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const STORAGE_KEY = "intern-groups-data";
+
+const departmentsList = [
+  "Mechanical",
+  "Computer Science (CSE)",
+  "Electrical (EX)",
+  "Electronics & Communication (EC)",
+  "MBA",
+];
 
 const GroupDetail = () => {
   const { groupId } = useParams();
@@ -10,29 +19,23 @@ const GroupDetail = () => {
   const [group, setGroup] = useState(null);
   const [candidateForm, setCandidateForm] = useState({
     name: "",
-    branch: "",
+    branch: "", // default empty
     qualities: "",
   });
 
   // Load group data from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        const foundGroup = data.groups.find((g) => g.id === groupId);
-        if (!foundGroup) {
-          alert("Group not found.");
-          navigate("/home");
-        } else {
-          setGroup(foundGroup);
-        }
-      } catch {
-        alert("Failed to load data.");
-        navigate("/home");
-      }
-    } else {
-      alert("No data found.");
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) throw new Error("No data found.");
+
+      const data = JSON.parse(saved);
+      const foundGroup = data.groups.find((g) => g.id === groupId);
+      if (!foundGroup) throw new Error("Group not found.");
+
+      setGroup(foundGroup);
+    } catch (err) {
+      alert(err.message);
       navigate("/home");
     }
   }, [groupId, navigate]);
@@ -40,15 +43,17 @@ const GroupDetail = () => {
   // Save updates back to localStorage
   useEffect(() => {
     if (!group) return;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
-
     try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+
       const data = JSON.parse(saved);
-      const updatedGroups = data.groups.map((g) => (g.id === group.id ? group : g));
+      const updatedGroups = data.groups.map((g) =>
+        g.id === group.id ? group : g
+      );
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ groups: updatedGroups }));
     } catch {
-      // ignore
+      // ignore save errors
     }
   }, [group]);
 
@@ -56,34 +61,47 @@ const GroupDetail = () => {
     setCandidateForm({ ...candidateForm, [e.target.name]: e.target.value });
   };
 
-  // Add candidate with Date of Joining
-  const addCandidate = () => {
+  // Add candidate with Date and Time of Joining
+  const addCandidate = async () => {
     const { name, branch, qualities } = candidateForm;
     if (!name.trim() || !branch.trim() || !qualities.trim()) {
       alert("Please fill in all candidate fields.");
       return;
     }
 
-    const today = new Date().toLocaleDateString("en-IN", {
+    const now = new Date();
+    const date = now.toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
-
-    setGroup({
-      ...group,
-      candidates: [
-        ...group.candidates,
-        {
-          id: Date.now().toString(),
-          name: name.trim(),
-          branch: branch.trim(),
-          qualities: qualities.trim(),
-          dateOfJoining: today,
-        },
-      ],
+    const time = now.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
+    const newCandidate = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      branch,
+      qualities: qualities.trim(),
+      dateOfJoining: `${date} ${time}`,
+    };
+
+    // Update local state
+    setGroup((prev) => ({
+      ...prev,
+      candidates: [...prev.candidates, newCandidate],
+    }));
+
+    // Send to backend (endpoint empty for now)
+    try {
+      await axios.post("", newCandidate); // replace "" with your endpoint
+    } catch (err) {
+      console.log("Backend save skipped or failed:", err.message);
+    }
+
+    // Reset form
     setCandidateForm({ name: "", branch: "", qualities: "" });
   };
 
@@ -102,7 +120,7 @@ const GroupDetail = () => {
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       {/* Header */}
-      <header className="p-5 bg-neutral-900 border-b border-gray-700 flex justify-between items-center">
+      <header className="p-4 bg-neutral-900 border-b border-gray-700 flex justify-between items-center">
         <h1 className="text-xl font-bold">{group.name} - Candidates</h1>
         <Link
           to="/home"
@@ -113,7 +131,7 @@ const GroupDetail = () => {
       </header>
 
       {/* Main */}
-      <main className="flex-grow max-w-4xl mx-auto w-full px-6 py-10">
+      <main className="flex-grow max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Add Candidate */}
         <section className="mb-10 bg-neutral-900 p-6 rounded-lg border border-gray-700">
           <h2 className="text-lg font-semibold mb-4">Add Candidate</h2>
@@ -125,14 +143,26 @@ const GroupDetail = () => {
             onChange={handleInputChange}
             className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-white bg-black text-white placeholder-gray-500"
           />
-          <input
-            type="text"
-            name="branch"
-            placeholder="Branch"
-            value={candidateForm.branch}
-            onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-white bg-black text-white placeholder-gray-500"
-          />
+
+          {/* Department Dropdown */}
+          <div className="relative mb-3">
+            <select
+              name="branch"
+              value={candidateForm.branch}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-black text-white focus:outline-none focus:ring-2 focus:ring-white"
+            >
+              <option value="" disabled>
+                -- Select Department --
+              </option>
+              {departmentsList.map((dep) => (
+                <option key={dep} value={dep}>
+                  {dep}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <textarea
             name="qualities"
             placeholder="Qualities / Description"
@@ -141,6 +171,7 @@ const GroupDetail = () => {
             rows={4}
             className="w-full px-4 py-2 border border-gray-600 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-white bg-black text-white placeholder-gray-500 resize-none"
           />
+
           <button
             onClick={addCandidate}
             className="w-full bg-white hover:bg-gray-200 text-black font-semibold py-2 px-4 rounded-lg transition"
@@ -155,30 +186,32 @@ const GroupDetail = () => {
           {group.candidates.length === 0 ? (
             <p className="text-gray-400">No candidates added yet.</p>
           ) : (
-            <ul className="space-y-4">
-              {group.candidates.map(({ id, name, branch, qualities, dateOfJoining }) => (
-                <li
-                  key={id}
-                  className="bg-neutral-900 p-4 rounded-lg border border-gray-700 flex flex-col md:flex-row md:justify-between md:items-center"
-                >
-                  <div>
-                    <h4 className="font-semibold text-white text-lg">{name}</h4>
-                    <p className="text-gray-300">Branch: {branch}</p>
-                    <p className="text-gray-400 mt-1 whitespace-pre-line">
-                      {qualities}
-                    </p>
-                    <p className="text-gray-500 mt-2 text-sm">
-                      Date of Joining: {dateOfJoining}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => deleteCandidate(id)}
-                    className="mt-3 md:mt-0 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg"
+            <ul className="space-y-4 max-h-[500px] overflow-y-auto">
+              {group.candidates.map(
+                ({ id, name, branch, qualities, dateOfJoining }) => (
+                  <li
+                    key={id}
+                    className="bg-neutral-900 p-4 rounded-lg border border-gray-700 flex flex-col md:flex-row md:justify-between md:items-center"
                   >
-                    Delete
-                  </button>
-                </li>
-              ))}
+                    <div>
+                      <h4 className="font-semibold text-white text-lg">{name}</h4>
+                      <p className="text-gray-300">Branch: {branch}</p>
+                      <p className="text-gray-400 mt-1 whitespace-pre-line">
+                        {qualities}
+                      </p>
+                      <p className="text-gray-500 mt-2 text-sm">
+                        Date & Time of Joining: {dateOfJoining}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => deleteCandidate(id)}
+                      className="mt-3 md:mt-0 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                )
+              )}
             </ul>
           )}
         </section>

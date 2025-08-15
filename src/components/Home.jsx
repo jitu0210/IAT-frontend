@@ -2,12 +2,16 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar.jsx";
 import Footer from "./Footer.jsx";
-import QRCode from "react-qr-code"; // Only keep this if you need QR code
+import QRCode from "react-qr-code";
+import axios from "axios";
 
 const STORAGE_KEY = "intern-groups-data";
 
-// Put your public Google Form link here
-const GOOGLE_FORM_LINK = "https://forms.gle/example"; // must not be empty
+// Use dummy QR until new Google Form is generated
+const DUMMY_FORM_LINK = "https://example.com/dummy-form";
+
+// Backend endpoint (hardcoded for now)
+const BACKEND_ENDPOINT = ""; // <-- replace with real endpoint later
 
 const Home = () => {
   const navigate = useNavigate();
@@ -25,10 +29,22 @@ const Home = () => {
 
   const [newGroupName, setNewGroupName] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [formLink, setFormLink] = useState(DUMMY_FORM_LINK);
 
+  // Save groups to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ groups }));
   }, [groups]);
+
+  // Function to send group data to backend
+  const syncGroupToBackend = async (group) => {
+    if (!BACKEND_ENDPOINT) return; // skip if endpoint not set
+    try {
+      await axios.post(BACKEND_ENDPOINT + "/groups", group);
+    } catch (err) {
+      console.error("Failed to sync with backend:", err);
+    }
+  };
 
   const addGroup = () => {
     const trimmed = newGroupName.trim();
@@ -40,48 +56,61 @@ const Home = () => {
       setErrorMsg("Group name already exists.");
       return;
     }
+
     const newGroup = {
       id: Date.now().toString(),
       name: trimmed,
       candidates: [],
       archived: false,
     };
+
     setGroups([...groups, newGroup]);
     setNewGroupName("");
     setErrorMsg("");
     navigate(`/groups/${newGroup.id}`);
+
+    // Sync new group to backend
+    syncGroupToBackend(newGroup);
   };
 
   const archiveGroup = (id) =>
-    setGroups(groups.map((g) => (g.id === id ? { ...g, archived: true } : g)));
+    setGroups(
+      groups.map((g) => {
+        const updated = g.id === id ? { ...g, archived: true } : g;
+        if (g.id === id) syncGroupToBackend(updated);
+        return updated;
+      })
+    );
 
   const unarchiveGroup = (id) =>
-    setGroups(groups.map((g) => (g.id === id ? { ...g, archived: false } : g)));
+    setGroups(
+      groups.map((g) => {
+        const updated = g.id === id ? { ...g, archived: false } : g;
+        if (g.id === id) syncGroupToBackend(updated);
+        return updated;
+      })
+    );
 
   const deleteGroup = (id) => {
-    if (window.confirm("Are you sure you want to permanently delete this group?")) {
-      setGroups(groups.filter((g) => g.id !== id));
-    }
+    setGroups(groups.filter((g) => g.id !== id));
   };
 
   const shareOnWhatsApp = () => {
-    if (!GOOGLE_FORM_LINK) {
-      alert("Google Form link is not set.");
-      return;
-    }
     const url = `https://wa.me/?text=${encodeURIComponent(
-      `Check out this form: ${GOOGLE_FORM_LINK}`
+      `Check out this form: ${formLink}`
     )}`;
     window.open(url, "_blank");
   };
 
   const copyLink = () => {
-    if (!GOOGLE_FORM_LINK) {
-      alert("Google Form link is not set.");
-      return;
-    }
-    navigator.clipboard.writeText(GOOGLE_FORM_LINK);
+    navigator.clipboard.writeText(formLink);
     alert("Link copied to clipboard!");
+  };
+
+  const calculatePerformance = (group) => {
+    if (!group.candidates || group.candidates.length === 0) return 0;
+    const total = group.candidates.reduce((sum, c) => sum + (c.performance || 0), 0);
+    return (total / group.candidates.length).toFixed(2);
   };
 
   return (
@@ -91,33 +120,27 @@ const Home = () => {
       <main className="flex-grow max-w-6xl mx-auto p-6 space-y-12">
         {/* QR Code Section */}
         <section className="bg-neutral-900 border border-gray-700 rounded-lg p-8 shadow-lg text-center">
-          <h2 className="text-2xl font-bold mb-4">Access Form via QR</h2>
-          {GOOGLE_FORM_LINK ? (
-            <>
-              <div className="flex justify-center mb-4">
-                <QRCode value={GOOGLE_FORM_LINK} size={150} bgColor="#000000" fgColor="#FFFFFF" />
-              </div>
-              <div className="flex justify-center space-x-4">
-                <button
-                  onClick={shareOnWhatsApp}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
-                >
-                  Share via WhatsApp
-                </button>
-                <button
-                  onClick={copyLink}
-                  className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg transition"
-                >
-                  Copy Link
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="text-gray-400">No form link available</p>
-          )}
+          <h2 className="text-2xl font-bold mb-4">Scan Form via QR</h2>
+          <div className="flex justify-center mb-4">
+            <QRCode value={formLink} size={150} bgColor="#000000" fgColor="#FFFFFF" />
+          </div>
+          <div className="flex justify-center space-x-4 flex-wrap">
+            <button
+              onClick={shareOnWhatsApp}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
+            >
+              Share via WhatsApp
+            </button>
+            <button
+              onClick={copyLink}
+              className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg transition"
+            >
+              Copy Link
+            </button>
+          </div>
         </section>
 
-        {/* Groups Section */}
+        {/* Groups Management */}
         <section className="bg-neutral-900 border border-gray-700 rounded-lg p-8 shadow-lg">
           <h2 className="text-3xl font-bold mb-8 border-b border-gray-600 pb-3">
             Manage Groups
@@ -157,13 +180,19 @@ const Home = () => {
                       : "border-white hover:shadow-lg"
                   }`}
                 >
-                  {archived ? (
-                    <span className="line-through text-gray-400">{name} (Archived)</span>
-                  ) : (
-                    <Link to={`/groups/${id}`} className="font-semibold hover:underline">
-                      {name}
-                    </Link>
-                  )}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    {archived ? (
+                      <span className="line-through text-gray-400">{name} (Archived)</span>
+                    ) : (
+                      <Link to={`/groups/${id}`} className="font-semibold hover:underline">
+                        {name}
+                      </Link>
+                    )}
+                    <span className="text-gray-300">
+                      Performance: {calculatePerformance(groups.find(g => g.id === id))} / 10
+                    </span>
+                  </div>
+
                   <div className="mt-3 sm:mt-0 space-x-2">
                     {archived ? (
                       <button

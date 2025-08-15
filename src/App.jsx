@@ -6,6 +6,7 @@ import Contact from "./pages/Contact.jsx"
 import GroupDetail from "./components/GroupDetail.jsx";
 import ForgetPassword from "./pages/Forgetpassword.jsx"
 import Help from "./pages/Help.jsx"
+import Developer from "./pages/Developer.jsx";
 
 
 const App = () => {
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/developer" element={<Developer />} />
         <Route path="/groups/:groupId" element={<GroupDetail />} />
       </Routes>
   
